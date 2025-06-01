@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadro Branco Colaborativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .toolbar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"] {
+            padding: 8px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 20px;
+            font-size: 14px;
+            width: 150px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+
+        select {
+            padding: 8px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #f44336, #e91e63);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .whiteboard-container {
+            position: relative;
+            height: 600px;
+            overflow: hidden;
+            background: white;
+        }
+
+        #whiteboard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            cursor: crosshair;
+            background: 
+                radial-gradient(circle at 20px 20px, #e9ecef 2px, transparent 2px),
+                radial-gradient(circle at 20px 20px, #e9ecef 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        .text-element {
+            position: absolute;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #2196F3;
+            cursor: move;
+            min-width: 100px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            resize: both;
+            overflow: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .text-element:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .text-element.editing {
+            background: rgba(255, 255, 255, 1);
+            border-color: #f44336;
+        }
+
+        .online-users {
+            background: #e8f5e8;
+            padding: 10px 20px;
+            border-top: 2px solid #4caf50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .user-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .user-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
+            text-align: center;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #856404;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+            }
+            
+            .tool-group {
+                justify-content: center;
+            }
+            
+            .whiteboard-container {
+                height: 400px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Quadro Branco Colaborativo</h1>
+            <p>Colabore em tempo real com professores do mundo todo!</p>
+        </div>
+
+        <div class="instructions">
+            <h3>🚀 Como usar:</h3>
+            <p><strong>1.</strong> Digite seu nome e escolha uma cor</p>
+            <p><strong>2.</strong> Clique em qualquer lugar do quadro para adicionar texto</p>
+            <p><strong>3.</strong> Arraste os textos para organizá-los</p>
+            <p><strong>4.</strong> Compartilhe este link para outros colaborarem!</p>
+        </div>
+
+        <div class="toolbar">
+            <div class="tool-group">
+                <label for="userName">👤 Seu Nome:</label>
+                <input type="text" id="userName" placeholder="Digite seu nome" maxlength="20">
+            </div>
+            
+            <div class="tool-group">
+                <label for="userColor">🎨 Sua Cor:</label>
+                <input type="color" id="userColor" value="#2196F3">
+            </div>
+            
+            <div class="tool-group">
+                <label for="fontSize">📏 Tamanho:</label>
+                <select id="fontSize">
+                    <option value="12px">Pequeno</option>
+                    <option value="16px" selected>Médio</option>
+                    <option value="20px">Grande</option>
+                    <option value="24px">Extra Grande</option>
+                </select>
+            </div>
+            
+            <div class="tool-group">
+                <button class="btn-primary" onclick="addStickyNote()">📌 Nota Rápida</button>
+                <button class="btn-success" onclick="saveBoard()">💾 Salvar</button>
+                <button class="btn-danger" onclick="clearBoard()">🗑️ Limpar Tudo</button>
+            </div>
+        </div>
+
+        <div class="whiteboard-container">
+            <div id="whiteboard"></div>
+        </div>
+
+        <div class="online-users">
+            <strong>👥 Usuários Online:</strong>
+            <div id="usersList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de armazenamento local (substitui localStorage para Canvas)
+        let boardData = {
+            elements: [],
+            users: {}
+        };
+
+        let currentUser = {
+            name: 'Usuário' + Math.floor(Math.random() * 1000),
+            color: '#2196F3',
+            id: 'user_' + Date.now() + '_' + Math.random()
+        };
+
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateUsersList();
+            loadSavedBoard();
+            
+            // Simular outros usuários online (para demonstração)
+            setTimeout(() => {
+                addDemoUser('Prof. Maria', '#e91e63');
+                addDemoUser('Prof. João', '#4caf50');
+            }, 2000);
+        });
+
+        function setupEventListeners() {
+            const whiteboard = document.getElementById('whiteboard');
+            const userName = document.getElementById('userName');
+            const userColor = document.getElementById('userColor');
+
+            // Clique no quadro para adicionar texto
+            whiteboard.addEventListener('click', function(e) {
+                if (!isDragging && e.target === whiteboard) {
+                    addTextElement(e.offsetX, e.offsetY);
+                }
+            });
+
+            // Atualizar dados do usuário
+            userName.addEventListener('input', function() {
+                currentUser.name = this.value || 'Usuário Anônimo';
+                updateUsersList();
+            });
+
+            userColor.addEventListener('change', function() {
+                currentUser.color = this.value;
+                updateUsersList();
+            });
+
+            // Eventos de arrastar
+            whiteboard.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+        }
+
+        function addTextElement(x, y, text = '', color = null, fontSize = null) {
+            const element = document.createElement('div');
+            element.className = 'text-element';
+            element.contentEditable = true;
+            element.textContent = text || 'Digite aqui...';
+            
+            const elementColor = color || currentUser.color;
+            const elementFontSize = fontSize || document.getElementById('fontSize').value;
+            
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.style.borderColor = elementColor;
+            element.style.color = elementColor;
+            element.style.fontSize = elementFontSize;
+            
+            // Dados do elemento
+            element.dataset.author = currentUser.name;
+            element.dataset.color = elementColor;
+            element.dataset.fontSize = elementFontSize;
+            element.dataset.id = 'element_' + Date.now() + '_' + Math.random();
+
+            // Eventos do elemento
+            element.addEventListener('focus', function() {
+                this.classList.add('editing');
+                if (this.textContent === 'Digite aqui...') {
+                    this.textContent = '';
+                }
+            });
+
+            element.addEventListener('blur', function() {
+                this.classList.remove('editing');
+                if (this.textContent.trim() === '') {
+                    this.textContent = 'Digite aqui...';
+                }
+                saveBoardData();
+            });
+
+            element.addEventListener('input', saveBoardData);
+
+            // Adicionar ao quadro
+            document.getElementById('whiteboard').appendChild(element);
+            
+            // Focar no elemento se for novo
+            if (!text) {
+                element.focus();
+            }
+
+            // Animação de entrada
+            element.style.transform = 'scale(0)';
+            setTimeout(() => {
+                element.style.transition = 'transform 0.3s ease';
+                element.style.transform = 'scale(1)';
+            }, 10);
+
+            saveBoardData();
+            return element;
+        }
+
+        function startDrag(e) {
+            if (e.target.classList.contains('text-element')) {
+                isDragging = true;
+                dragElement = e.target;
+                
+                const rect = dragElement.getBoundingClientRect();
+                const parentRect = document.getElementById('whiteboard').getBoundingClientRect();
+                
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                
+                dragElement.style.cursor = 'grabbing';
+                dragElement.style.zIndex = '1000';
+            }
+        }
+
+        function drag(e) {
+            if (isDragging && dragElement) {
+                e.preventDefault();
+                
+                const parentRect = document.getElementById('whiteboard').getBoundingClientRect();
+                const x = e.clientX - parentRect.left - dragOffset.x;
+                const y = e.clientY - parentRect.top - dragOffset.y;
+                
+                // Limites do quadro
+                const maxX = parentRect.width - dragElement.offsetWidth;
+                const maxY = parentRect.height - dragElement.offsetHeight;
+                
+                dragElement.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+                dragElement.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            }
+        }
+
+        function endDrag() {
+            if (isDragging && dragElement) {
+                dragElement.style.cursor = 'move';
+                dragElement.style.zIndex = 'auto';
+                saveBoardData();
+            }
+            isDragging = false;
+            dragElement = null;
+        }
+
+        function addStickyNote() {
+            const colors = ['#ffeb3b', '#ff9800', '#e91e63', '#9c27b0', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#4caf50', '#8bc34a'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const x = Math.random() * (document.getElementById('whiteboard').offsetWidth - 200);
+            const y = Math.random() * (document.getElementById('whiteboard').offsetHeight - 100);
+            
+            const element = addTextElement(x, y, '💡 Nova ideia!', randomColor, '16px');
+            element.style.background = randomColor + '20';
+            element.classList.add('pulse');
+            
+            setTimeout(() => {
+                element.classList.remove('pulse');
+            }, 2000);
+        }
+
+        function saveBoardData() {
+            const elements = document.querySelectorAll('.text-element');
+            boardData.elements = Array.from(elements).map(el => ({
+                id: el.dataset.id,
+                text: el.textContent,
+                x: parseInt(el.style.left),
+                y: parseInt(el.style.top),
+                color: el.dataset.color,
+                fontSize: el.dataset.fontSize,
+                author: el.dataset.author
+            }));
+        }
+
+        function loadSavedBoard() {
+            // Em uma implementação real, aqui carregaria dados do servidor
+            // Para demonstração, adiciona alguns elementos exemplo
+            setTimeout(() => {
+                addTextElement(100, 100, '🎯 Objetivo da Reunião', '#2196f3', '20px');
+                addTextElement(300, 150, '💡 Brainstorming de Ideias', '#4caf50', '16px');
+                addTextElement(500, 200, '📝 Próximos Passos', '#ff9800', '16px');
+            }, 1000);
+        }
+
+        function saveBoard() {
+            saveBoardData();
+            
+            // Simular salvamento
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Salvo!';
+            button.style.background = '#4caf50';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+
+            // Em uma implementação real, enviaria dados para servidor
+            console.log('Dados salvos:', boardData);
+        }
+
+        function clearBoard() {
+            if (confirm('🗑️ Tem certeza que deseja limpar todo o quadro? Esta ação não pode ser desfeita.')) {
+                document.getElementById('whiteboard').innerHTML = '';
+                boardData.elements = [];
+                
+                // Efeito visual
+                const whiteboard = document.getElementById('whiteboard');
+                whiteboard.style.background = '#ffebee';
+                setTimeout(() => {
+                    whiteboard.style.background = '';
+                }, 500);
+            }
+        }
+
+        function addDemoUser(name, color) {
+            boardData.users[name] = {
+                name: name,
+                color: color,
+                lastSeen: Date.now()
+            };
+            updateUsersList();
+        }
+
+        function updateUsersList() {
+            // Adicionar usuário atual
+            boardData.users[currentUser.id] = {
+                name: currentUser.name,
+                color: currentUser.color,
+                lastSeen: Date.now()
+            };
+
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = '';
+            
+            Object.values(boardData.users).forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-indicator';
+                userDiv.innerHTML = `
+                    <div class="user-color" style="background-color: ${user.color}"></div>
+                    <span>${user.name}</span>
+                `;
+                usersList.appendChild(userDiv);
+            });
+        }
+
+        // Atualizar lista de usuários periodicamente
+        setInterval(updateUsersList, 30000);
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveBoard();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        addStickyNote();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
